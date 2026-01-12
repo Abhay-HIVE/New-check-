@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SmartStudy AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+--primary:#6366f1;
+--secondary:#ec4899;
+--accent:#22c55e;
+--bg:#020617;
+--card:rgba(15,23,42,.85);
+--border:rgba(255,255,255,.1);
+--text:#e5e7eb;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif}
+
+body{
+min-height:100vh;
+background:radial-gradient(circle at top left,#1e1b4b 0%,#020617 60%);
+color:var(--text);
+}
+
+/* ---------- WELCOME SCREEN ---------- */
+#welcomeScreen{
+position:fixed;
+inset:0;
+background:linear-gradient(135deg,#4f46e5,#ec4899);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:2000;
+animation:fadeIn 0.8s ease;
+}
+
+.welcome-box{
+background:white;
+color:#111;
+padding:40px;
+border-radius:20px;
+width:90%;
+max-width:400px;
+text-align:center;
+animation:slideUp .7s ease;
+}
+
+.welcome-box h1{margin-bottom:10px}
+.welcome-box input{
+width:100%;
+padding:14px;
+margin-top:15px;
+border-radius:12px;
+border:1px solid #ccc;
+}
+.welcome-box button{
+margin-top:20px;
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+background:#4f46e5;
+color:white;
+font-weight:700;
+cursor:pointer;
+}
+
+@keyframes slideUp{
+from{transform:translateY(40px);opacity:0}
+to{transform:translateY(0);opacity:1}
+}
+
+/* ---------- HEADER ---------- */
+header{
+position:sticky;top:0;
+backdrop-filter:blur(14px);
+background:linear-gradient(135deg,rgba(99,102,241,.35),rgba(236,72,153,.35));
+border-bottom:1px solid var(--border);
+}
+
+header .wrap{
+max-width:1100px;margin:auto;
+display:flex;justify-content:space-between;align-items:center;
+padding:16px 24px;
+}
+
+header h1{font-size:1.6rem;font-weight:800}
+header span{color:var(--accent)}
+
+.container{max-width:1100px;margin:auto;padding:24px}
+
+.card{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:24px;
+padding:28px;
+margin-bottom:28px;
+animation:fadeUp .7s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(30px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:16px;
+}
+
+label{font-size:.85rem;opacity:.8}
+input,select{
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid var(--border);
+background:rgba(0,0,0,.4);
+color:white;
+margin-top:6px;
+}
+
+.btn{
+width:100%;
+margin-top:18px;
+padding:16px;
+border:none;
+border-radius:18px;
+font-weight:700;
+color:white;
+cursor:pointer;
+background:linear-gradient(135deg,var(--primary),var(--secondary));
+}
+
+.btn.secondary{
+background:linear-gradient(135deg,var(--accent),#16a34a);
+}
+
+table{width:100%;border-collapse:separate;border-spacing:0 12px}
+td{
+padding:16px;
+background:rgba(255,255,255,.05);
+border-left:4px solid var(--primary);
+border-radius:12px;
+}
+
+tr.break td{border-left-color:var(--accent);font-style:italic}
+tr.weak td{border-left-color:#ef4444}
+
+footer{text-align:center;opacity:.6;padding:30px}
+</style>
+</head>
+
+<body>
+
+<!-- WELCOME -->
+<div id="welcomeScreen">
+  <div class="welcome-box">
+    <h1>Welcome to SmartStudy AI 📘</h1>
+    <p>Enter your name to begin</p>
+    <input id="studentNameInput" placeholder="Your Name">
+    <button onclick="saveName()">Start Planning</button>
+  </div>
+</div>
+
+<header>
+<div class="wrap">
+<h1>SmartStudy <span>AI</span></h1>
+<div id="studentName"></div>
+</div>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>Student Setup</h2>
+<div class="grid">
+<div><label>Board</label><select id="board"><option>CBSE</option><option>ICSE</option><option>State Board</option></select></div>
+<div><label>Class</label><input id="grade" value="8"></div>
+<div><label>Subjects</label><input id="subjects" value="Maths, Science, SST, English"></div>
+<div><label>Weak Subjects</label><input id="weak" value="Maths"></div>
+<div><label>Strong Subjects</label><input id="strong" value="SST"></div>
+<div><label>Study Hours</label><input type="number" id="hours" value="4"></div>
+<div><label>Start Time</label><input type="time" id="start" value="16:00"></div>
+<div><label>Energy Level</label>
+<select id="energy"><option>low</option><option selected>normal</option><option>high</option></select>
+</div>
+</div>
+<button class="btn" onclick="generate()">Generate Timetable</button>
+<div>
+  <label>Start Date</label>
+  <input type="date" id="startDate" value="2026-01-12">
+</div>
+
+<div>
+  <label>End Date</label>
+  <input type="date" id="endDate" value="2026-03-15">
+</div>
+
+</div>
+
+<div class="card">
+<h2>Today’s Study Plan</h2>
+<table><tbody id="output"></tbody></table>
+<button class="btn secondary" onclick="downloadPDF()">Download PDF</button>
+<button class="btn secondary" onclick="reloadPlanner()">Reload Planner</button>
+
+</div>
+
+</div>
+
+<footer>© SmartStudy AI • Made by Abhay Sharma</footer>
+
+<script>
+const welcome=document.getElementById("welcomeScreen");
+const nameBox=document.getElementById("studentName");
+
+if(localStorage.getItem("studentName")){
+welcome.style.display="none";
+nameBox.textContent="👋 "+localStorage.getItem("studentName");
+}
+
+function saveName(){
+const n=document.getElementById("studentNameInput").value.trim();
+if(!n)return alert("Enter your name");
+localStorage.setItem("studentName",n);
+welcome.style.display="none";
+nameBox.textContent="👋 "+n;
+}
+
+function generate(){
+  const subjects = document.getElementById("subjects").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const weak = document.getElementById("weak").value.split(",").map(s=>s.trim());
+  const strong = document.getElementById("strong").value.split(",").map(s=>s.trim());
+  const hours = +document.getElementById("hours").value;
+  const start = document.getElementById("start").value;
+  const energy = document.getElementById("energy").value;
+
+  let maxSession = energy==="high"?45:energy==="low"?25:35;
+  let totalMin = hours * 60, breakMin = 5;
+
+  let pool = subjects.map(s=>{
+    let w = 2;
+    if(weak.includes(s)) w = 3;
+    if(strong.includes(s)) w = 1;
+    return { subject:s, weight:w };
+  });
+
+  let totalWeight = pool.reduce((a,b)=>a+b.weight,0);
+  pool = pool.map(p=>({...p, minutes:Math.round(p.weight/totalWeight*totalMin)}));
+  pool.sort((a,b)=>b.weight-a.weight);
+
+  let [h,m] = start.split(":").map(Number);
+  let current = h*60 + m;
+
+  const out = document.getElementById("output");
+  out.innerHTML = "";
+  generatedTimetable = [];
+
+  function fmt(t){
+    let hr=Math.floor(t/60)%24, mn=t%60, ap=hr>=12?"PM":"AM";
+    hr=hr%12||12;
+    return `${hr}:${mn.toString().padStart(2,"0")} ${ap}`;
+  }
+
+  pool.forEach(p=>{
+    let rem = p.minutes;
+    while(rem>0){
+      let dur = Math.min(maxSession,rem);
+
+      const row = {
+        time: `${fmt(current)} – ${fmt(current+dur)}`,
+        subject: p.subject,
+        type: p.weight===3 ? "weak" : "normal"
+      };
+
+      generatedTimetable.push(row);
+
+      out.innerHTML += `
+        <tr class="${p.weight===3?"weak":""}">
+          <td>${row.time}</td>
+          <td>${row.subject}</td>
+        </tr>`;
+
+      current += dur;
+      rem -= dur;
+
+      if(rem>0){
+        generatedTimetable.push({
+          time: `${fmt(current)} – ${fmt(current+breakMin)}`,
+          subject: "Break",
+          type: "break"
+        });
+
+        out.innerHTML += `
+          <tr class="break">
+            <td>${fmt(current)} – ${fmt(current+breakMin)}</td>
+            <td>Break</td>
+          </tr>`;
+
+        current += breakMin;
+      }
+    }
+  });
+}
+
+
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const name = localStorage.getItem("studentName") || "Student";
+  const board = document.getElementById("board").value;
+  const grade = document.getElementById("grade").value;
+  const hours = document.getElementById("hours").value;
+
+  const startDate = new Date(document.getElementById("startDate").value);
+  const endDate   = new Date(document.getElementById("endDate").value);
+
+  const PRIMARY = [99, 102, 241];
+  const ACCENT  = [34, 197, 94];
+  const MUTED   = [100, 116, 139];
+
+  function formatDate(d){
+    return d.toDateString();
+  }
+
+  let currentDate = new Date(startDate);
+
+  while(currentDate <= endDate){
+
+    let y = 20;
+
+    /* ---------- TITLE ---------- */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(...PRIMARY);
+    doc.text("SmartStudy AI", 105, y, { align: "center" });
+
+    y += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(...MUTED);
+    doc.text(`Personalized Study Timetable`, 105, y, { align: "center" });
+
+    y += 6;
+    doc.setDrawColor(...PRIMARY);
+    doc.line(20, y, 190, y);
+
+    /* ---------- DATE ---------- */
+    y += 8;
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text(`📅 Date: ${formatDate(currentDate)}`, 105, y, { align: "center" });
+
+    /* ---------- STUDENT INFO CARD ---------- */
+    y += 10;
+    doc.setDrawColor(220);
+    doc.setFillColor(245, 247, 255);
+    doc.roundedRect(15, y, 180, 38, 6, 6, "F");
+
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "bold");
+    doc.text("Student Details", 20, y + 8);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${name}`, 20, y + 18);
+    doc.text(`Class: ${grade}`, 20, y + 26);
+
+    doc.text(`Board: ${board}`, 110, y + 18);
+    doc.text(`Study Hours: ${hours}`, 110, y + 26);
+
+    y += 50;
+
+    /* ---------- TIMETABLE HEADER ---------- */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...PRIMARY);
+    doc.text("📘 Today's Study Plan", 20, y);
+
+    y += 6;
+    doc.setDrawColor(...PRIMARY);
+    doc.line(20, y, 190, y);
+    y += 6;
+
+    /* ---------- TIMETABLE ROWS ---------- */
+    doc.setFontSize(11);
+
+    generatedTimetable.forEach(row => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+
+      const isBreak = row.subject.toLowerCase().includes("break");
+
+      if (isBreak) {
+        doc.setFillColor(230, 255, 240);
+        doc.setTextColor(...ACCENT);
+      } else {
+        doc.setFillColor(245, 245, 250);
+        doc.setTextColor(0);
+      }
+
+      doc.roundedRect(18, y - 5, 174, 10, 4, 4, "F");
+      doc.text(`${row.time}  |  ${row.subject}`, 22, y + 2);
+
+      y += 12;
+    });
+
+    /* ---------- FOOTER ---------- */
+    doc.setFontSize(9);
+    doc.setTextColor(...MUTED);
+    doc.text(
+      "Generated by SmartStudy AI • Adaptive Learning Planner",
+      105,
+      290,
+      { align: "center" }
+    );
+
+    doc.addPage();
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  doc.save("SmartStudyAI_FullSchedule.pdf");
+}
+
+
+let generatedTimetable = [];
+
+function reloadPlanner(){
+  localStorage.clear();   // Removes saved name & data
+  location.reload();     // Reloads the page fully
+}
+
+</script>
+
+</body>
+</html>
